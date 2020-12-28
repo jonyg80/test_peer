@@ -99,12 +99,12 @@ function downloadYoutubeDLVideo(url: string, extension: string, timeout: number)
 
   logger.info('Importing youtubeDL video %s to %s', url, path)
 
-  let options = ['-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', '--external-downloader', 'aria2c', '--external-downloader-args', '--out=' + path]
+  let options = ['-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', '--external-downloader', 'aria2c', '--external-downloader-args', '--dir='+program['tmpdir'], '--out=' + sha256(url) + '.mp4']
   options = wrapWithProxyOptions(options)
 
-  // if (process.env.FFMPEG_PATH) {
-  //   options = options.concat([ '--ffmpeg-location', process.env.FFMPEG_PATH ])
-  // }
+  if (process.env.FFMPEG_PATH) {
+    options = options.concat([ '--ffmpeg-location', process.env.FFMPEG_PATH ])
+  }
 
   return new Promise<string>((res, rej) => {
     safeGetYoutubeDL()
