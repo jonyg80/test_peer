@@ -2,12 +2,13 @@ import { CONSTRAINTS_FIELDS, VIDEO_CATEGORIES, VIDEO_LANGUAGES, VIDEO_LICENCES }
 import { logger } from './logger'
 import { generateVideoImportTmpPath } from './utils'
 import { join } from 'path'
-import { peertubeTruncate, root } from './core-utils'
+import { peertubeTruncate, root, sha256 } from './core-utils'
 import { ensureDir, remove, writeFile } from 'fs-extra'
 import * as request from 'request'
 import { createWriteStream } from 'fs'
 import { CONFIG } from '@server/initializers/config'
 import { HttpStatusCode } from '../../shared/core-utils/miscs/http-error-codes'
+import * as program from 'commander'
 
 export type YoutubeDLInfo = {
   name?: string
@@ -32,9 +33,9 @@ const processOptions = {
   maxBuffer: 1024 * 1024 * 10 // 10MB
 }
 
-function getYoutubeDLInfo (url: string, opts?: string[]): Promise<YoutubeDLInfo> {
+function getYoutubeDLInfo(url: string, opts?: string[]): Promise<YoutubeDLInfo> {
   return new Promise<YoutubeDLInfo>((res, rej) => {
-    let args = opts || [ '-j', '--flat-playlist' ]
+    let args = opts || ['-j', '--flat-playlist']
 
     if (CONFIG.IMPORT.VIDEOS.HTTP.FORCE_IPV4) {
       args.push('--force-ipv4')
@@ -58,7 +59,7 @@ function getYoutubeDLInfo (url: string, opts?: string[]): Promise<YoutubeDLInfo>
   })
 }
 
-function getYoutubeDLSubs (url: string, opts?: object): Promise<YoutubeDLSubs> {
+function getYoutubeDLSubs(url: string, opts?: object): Promise<YoutubeDLSubs> {
   return new Promise<YoutubeDLSubs>((res, rej) => {
     const cwd = CONFIG.STORAGE.TMP_DIR
     const options = opts || { all: true, format: 'vtt', cwd }
@@ -92,13 +93,13 @@ function getYoutubeDLSubs (url: string, opts?: object): Promise<YoutubeDLSubs> {
   })
 }
 
-function downloadYoutubeDLVideo (url: string, extension: string, timeout: number) {
-  const path = generateVideoImportTmpPath(url, extension)
+function downloadYoutubeDLVideo(url: string, extension: string, timeout: number) {
+  const path = join(program['tmpdir'], sha256(url) + '.mp4')
   let timer
 
   logger.info('Importing youtubeDL video %s to %s', url, path)
 
-  let options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', '--external-downloader', 'aria2c', '--external-downloader-args', '--out='+path ]
+  let options = ['-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', '--external-downloader', 'aria2c', '--external-downloader-args', '--out=' + path]
   options = wrapWithProxyOptions(options)
 
   // if (process.env.FFMPEG_PATH) {
@@ -138,7 +139,7 @@ function downloadYoutubeDLVideo (url: string, extension: string, timeout: number
 
 // Thanks: https://github.com/przemyslawpluta/node-youtube-dl/blob/master/lib/downloader.js
 // We rewrote it to avoid sync calls
-async function updateYoutubeDLBinary () {
+async function updateYoutubeDLBinary() {
   logger.info('Updating youtubeDL binary.')
 
   const binDirectory = join(root(), 'node_modules', 'youtube-dl', 'bin')
@@ -194,7 +195,7 @@ async function updateYoutubeDLBinary () {
   })
 }
 
-async function safeGetYoutubeDL () {
+async function safeGetYoutubeDL() {
   let youtubeDL
 
   try {
@@ -208,7 +209,7 @@ async function safeGetYoutubeDL () {
   return youtubeDL
 }
 
-function buildOriginallyPublishedAt (obj: any) {
+function buildOriginallyPublishedAt(obj: any) {
   let originallyPublishedAt: Date = null
 
   const uploadDateMatcher = /^(\d{4})(\d{2})(\d{2})$/.exec(obj.upload_date)
@@ -240,7 +241,7 @@ export {
 
 // ---------------------------------------------------------------------------
 
-function normalizeObject (obj: any) {
+function normalizeObject(obj: any) {
   const newObj: any = {}
 
   for (const key of Object.keys(obj)) {
@@ -259,7 +260,7 @@ function normalizeObject (obj: any) {
   return newObj
 }
 
-function buildVideoInfo (obj: any): YoutubeDLInfo {
+function buildVideoInfo(obj: any): YoutubeDLInfo {
   return {
     name: titleTruncation(obj.title),
     description: descriptionTruncation(obj.description),
@@ -274,7 +275,7 @@ function buildVideoInfo (obj: any): YoutubeDLInfo {
   }
 }
 
-function titleTruncation (title: string) {
+function titleTruncation(title: string) {
   return peertubeTruncate(title, {
     length: CONSTRAINTS_FIELDS.VIDEOS.NAME.max,
     separator: /,? +/,
@@ -282,7 +283,7 @@ function titleTruncation (title: string) {
   })
 }
 
-function descriptionTruncation (description: string) {
+function descriptionTruncation(description: string) {
   if (!description || description.length < CONSTRAINTS_FIELDS.VIDEOS.DESCRIPTION.min) return undefined
 
   return peertubeTruncate(description, {
@@ -292,11 +293,11 @@ function descriptionTruncation (description: string) {
   })
 }
 
-function isNSFW (info: any) {
+function isNSFW(info: any) {
   return info.age_limit && info.age_limit >= 16
 }
 
-function getTags (tags: any) {
+function getTags(tags: any) {
   if (Array.isArray(tags) === false) return []
 
   return tags
@@ -305,7 +306,7 @@ function getTags (tags: any) {
     .slice(0, 5)
 }
 
-function getLicence (licence: string) {
+function getLicence(licence: string) {
   if (!licence) return undefined
 
   if (licence.includes('Creative Commons Attribution')) return 1
@@ -318,7 +319,7 @@ function getLicence (licence: string) {
   return undefined
 }
 
-function getCategory (categories: string[]) {
+function getCategory(categories: string[]) {
   if (!categories) return undefined
 
   const categoryString = categories[0]
@@ -334,15 +335,15 @@ function getCategory (categories: string[]) {
   return undefined
 }
 
-function getLanguage (language: string) {
+function getLanguage(language: string) {
   return VIDEO_LANGUAGES[language] ? language : undefined
 }
 
-function wrapWithProxyOptions (options: string[]) {
+function wrapWithProxyOptions(options: string[]) {
   if (CONFIG.IMPORT.VIDEOS.HTTP.PROXY.ENABLED) {
     logger.debug('Using proxy for YoutubeDL')
 
-    return [ '--proxy', CONFIG.IMPORT.VIDEOS.HTTP.PROXY.URL ].concat(options)
+    return ['--proxy', CONFIG.IMPORT.VIDEOS.HTTP.PROXY.URL].concat(options)
   }
 
   return options
