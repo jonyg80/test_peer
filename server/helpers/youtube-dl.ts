@@ -98,7 +98,7 @@ function downloadYoutubeDLVideo (url: string, extension: string, timeout: number
 
   logger.info('Importing youtubeDL video %s to %s', url, path)
 
-  let options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', '--external-downloader aria2c', '--external-downloader-args', '-o', path ]
+  let options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', '--external-downloader', 'aria2c', '--external-downloader-args', '-o', path ]
   options = wrapWithProxyOptions(options)
 
   // if (process.env.FFMPEG_PATH) {
