@@ -156,7 +156,7 @@ function processVideo (parameters: {
 
     log.info('Downloading video "%s"...', videoInfo.title)
 
-    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '-o', path ]
+    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '--external-downloader aria2c', '--external-downloader-args', '-o', path ]
     try {
       const youtubeDL = await safeGetYoutubeDL()
       youtubeDL.exec(videoInfo.url, options, processOptions, async (err, output) => {
@@ -404,7 +404,7 @@ function exitError (message: string, ...meta: any[]) {
 
 function getYoutubeDLInfo (youtubeDL: any, url: string, args: string[]) {
   return new Promise<any>((res, rej) => {
-    const options = [ '-j', '--flat-playlist', '--playlist-reverse', ...args ]
+    const options = [ '-j', '--flat-playlist', ...args ]
 
     youtubeDL.getInfo(url, options, processOptions, async (err, info) => {
       if (err) return rej(err)
