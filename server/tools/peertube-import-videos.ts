@@ -153,10 +153,13 @@ function processVideo (parameters: {
     }
 
     const path = join(cwd, sha256(videoInfo.url) + '.mp4')
+    const dirPath = join(cwd)
+    const fileName = join(sha256(videoInfo.url) + '.mp4')
 
     log.info('Downloading video "%s"...', videoInfo.title)
 
-    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '--external-downloader', 'aria2c', '--external-downloader-args', '--dir='+program['tmpdir'], '--external-downloader-args', '--out=' + sha256(url) + '.mp4', '--external-downloader-args', '--max-connection-per-server=8']
+    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '--external-downloader', 'aria2c', '--external-downloader-args', '--dir='+dirPath, '--external-downloader-args', '--out='+fileName, '--external-downloader-args', '--max-connection-per-server=8']
+    log.info('\n options = ' + options)
     try {
       const youtubeDL = await safeGetYoutubeDL()
       youtubeDL.exec(videoInfo.url, options, processOptions, async (err, output) => {
