@@ -156,7 +156,7 @@ function processVideo (parameters: {
 
     log.info('Downloading video "%s"...', videoInfo.title)
 
-    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '--external-downloader', 'aria2c', '--external-downloader-args', '--max-connection-per-server=8', '--dir='+program['tmpdir'], '--out=' + sha256(url) + '.mp4']
+    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '--external-downloader', 'aria2c', '--external-downloader-args', '--dir='+program['tmpdir'], '--out=' + sha256(url) + '.mp4', '--max-connection-per-server=8']
     try {
       const youtubeDL = await safeGetYoutubeDL()
       youtubeDL.exec(videoInfo.url, options, processOptions, async (err, output) => {
