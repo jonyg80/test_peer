@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
+      - run: git pull https://github.com/Chocobozzz/PeerTube.git
       - run: |
           sudo apt-get install curl unzip vim
           sudo apt update
