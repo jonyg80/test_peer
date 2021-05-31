@@ -155,7 +155,7 @@
     "webfinger.js": "^2.6.6",
     "webtorrent": "^0.111.0",
     "winston": "3.3.3",
-    "ws": "^7.0.0",
+    "ws": "^7.4.6",
     "youtube-dl": "^3.0.2"
   },
   "devDependencies": {
